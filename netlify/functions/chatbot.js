@@ -1,7 +1,9 @@
 const fetch = require("node-fetch");
 
 exports.handler = async function (event) {
-  // Only accept POST requests
+  console.log("⚡ Request received:", event.body); // 🧪 Log the raw incoming body
+
+  // Only allow POST requests
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -13,6 +15,8 @@ exports.handler = async function (event) {
     const body = JSON.parse(event.body);
     const userMessage = body.message;
 
+    console.log("🧠 User message:", userMessage); // 🧪 Log extracted user message
+
     if (!userMessage) {
       return {
         statusCode: 400,
@@ -23,7 +27,7 @@ exports.handler = async function (event) {
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`, // ✅ DO NOT hardcode
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`, // 🔐 Secure env key
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -44,14 +48,16 @@ exports.handler = async function (event) {
     const data = await apiResponse.json();
 
     if (data.error) {
-      console.error("OpenRouter error:", data.error);
+      console.error("❌ OpenRouter API Error:", data.error);
       return {
         statusCode: 502,
         body: JSON.stringify({ error: data.error.message || "Fejl fra OpenRouter API." })
       };
     }
 
-    const reply = data.choices?.[0]?.message?.content || "Bot kunne ikke give et svar.";
+    const reply = data.choices?.[0]?.message?.content || "Intet svar modtaget.";
+
+    console.log("✅ Bot reply:", reply); // 🧪 Log the bot’s reply
 
     return {
       statusCode: 200,
@@ -60,7 +66,7 @@ exports.handler = async function (event) {
     };
 
   } catch (err) {
-    console.error("Server error:", err.message);
+    console.error("💥 Server error:", err.message);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: "Intern serverfejl: " + err.message })
