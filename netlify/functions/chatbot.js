@@ -1,8 +1,6 @@
 const fetch = require("node-fetch");
 
 exports.handler = async function (event) {
-  console.log("⚡ Request received:", event.body);
-
   const allowedOrigin = "https://demo-deteasy.squarespace.com";
 
   if (event.httpMethod === "OPTIONS") {
@@ -20,9 +18,7 @@ exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: {
-        "Access-Control-Allow-Origin": allowedOrigin
-      },
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ error: "Method Not Allowed" })
     };
   }
@@ -31,14 +27,10 @@ exports.handler = async function (event) {
     const body = JSON.parse(event.body || "{}");
     const userMessage = typeof body.message === "string" ? body.message.trim() : "";
 
-    console.log("🧠 User message:", userMessage);
-
     if (!userMessage) {
       return {
         statusCode: 400,
-        headers: {
-          "Access-Control-Allow-Origin": allowedOrigin
-        },
+        headers: { "Access-Control-Allow-Origin": allowedOrigin },
         body: JSON.stringify({ error: "Beskeden må ikke være tom." })
       };
     }
@@ -50,7 +42,7 @@ exports.handler = async function (event) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo",
+        model: "deepseek-ai/deepseek-chat",  // ✅ MATCHES YOUR DEFAULT
         messages: [
           {
             role: "system",
@@ -70,15 +62,12 @@ exports.handler = async function (event) {
       console.error("❌ OpenRouter API Error:", data.error);
       return {
         statusCode: 502,
-        headers: {
-          "Access-Control-Allow-Origin": allowedOrigin
-        },
+        headers: { "Access-Control-Allow-Origin": allowedOrigin },
         body: JSON.stringify({ error: data.error.message || "Fejl fra OpenRouter API." })
       };
     }
 
     const reply = data.choices?.[0]?.message?.content || "Intet svar modtaget.";
-    console.log("✅ Bot reply:", reply);
 
     return {
       statusCode: 200,
@@ -93,9 +82,7 @@ exports.handler = async function (event) {
     console.error("💥 Server error:", err.message);
     return {
       statusCode: 500,
-      headers: {
-        "Access-Control-Allow-Origin": allowedOrigin
-      },
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
       body: JSON.stringify({ error: "Intern serverfejl: " + err.message })
     };
   }
