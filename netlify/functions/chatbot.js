@@ -1,8 +1,10 @@
+// netlify/functions/chatbot.js
 const fetch = require("node-fetch");
 
-exports.handler = async function (event) {
+exports.handler = async function(event) {
   const allowedOrigin = "https://demo-deteasy.squarespace.com";
 
+  // CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -15,6 +17,7 @@ exports.handler = async function (event) {
     };
   }
 
+  // Only allow POST
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -25,7 +28,7 @@ exports.handler = async function (event) {
 
   try {
     const body = JSON.parse(event.body || "{}");
-    const userMessage = typeof body.message === "string" ? body.message.trim() : "";
+    const userMessage = (body.message || "").trim();
 
     if (!userMessage) {
       return {
@@ -35,29 +38,24 @@ exports.handler = async function (event) {
       };
     }
 
-    const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    // 🔧 Correct model ID
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "deepseek-ai/deepseek-moe",
+        model: "deepseek-r1-0528-qwen3-8b",
         messages: [
-          {
-            role: "system",
-            content: "Du er en venlig dansk chatbot, der forklarer teknologi og AI på en enkel og hjælpsom måde til nybegyndere."
-          },
-          {
-            role: "user",
-            content: userMessage
-          }
+          { role: "system", content: "Du er en venlig dansk chatbot som forklarer ting på en enkel måde." },
+          { role: "user", content: userMessage }
         ]
       })
     });
 
-    const data = await apiResponse.json();
-    console.log("🔍 OpenRouter raw response:", JSON.stringify(data));
+    const data = await response.json();
+    console.info("🔍 OpenRouter raw response:", JSON.stringify(data));
 
     if (data.error) {
       return {
@@ -67,7 +65,7 @@ exports.handler = async function (event) {
       };
     }
 
-    const reply = data.choices?.[0]?.message?.content || "Intet svar modtaget.";
+    const reply = data.choices?.[0]?.message?.content?.trim() || "Intet svar modtaget.";
 
     return {
       statusCode: 200,
@@ -79,7 +77,7 @@ exports.handler = async function (event) {
     };
 
   } catch (err) {
-    console.error("💥 Server error:", err.message);
+    console.error("💥 Server error:", err);
     return {
       statusCode: 500,
       headers: { "Access-Control-Allow-Origin": allowedOrigin },
