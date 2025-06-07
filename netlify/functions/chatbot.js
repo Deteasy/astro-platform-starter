@@ -2,7 +2,7 @@ const fetch = require("node-fetch");
 
 exports.handler = async function (event) {
   try {
-    // Only allow POST requests
+    // Allow only POST requests
     if (event.httpMethod !== "POST") {
       return {
         statusCode: 405,
@@ -13,7 +13,6 @@ exports.handler = async function (event) {
     const body = JSON.parse(event.body);
     const userMessage = body.message;
 
-    // Make sure message is not empty
     if (!userMessage) {
       return {
         statusCode: 400,
@@ -21,7 +20,7 @@ exports.handler = async function (event) {
       };
     }
 
-    // Call OpenRouter
+    // Call OpenRouter securely using the environment variable
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -53,12 +52,10 @@ exports.handler = async function (event) {
       };
     }
 
-    const reply = data.choices?.[0]?.message?.content;
-
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reply })
+      body: JSON.stringify({ reply: data.choices?.[0]?.message?.content || "Intet svar." })
     };
 
   } catch (err) {
