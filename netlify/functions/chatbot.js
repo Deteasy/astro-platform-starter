@@ -3,7 +3,6 @@ const fetch = require("node-fetch");
 exports.handler = async function (event) {
   const allowedOrigin = "https://demo-deteasy.squarespace.com";
 
-  // CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -16,7 +15,6 @@ exports.handler = async function (event) {
     };
   }
 
-  // Reject non-POST
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -44,7 +42,7 @@ exports.handler = async function (event) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "deepseek/deepseek-r1-0528-qwen3-8b", // ✅ CORRECT model ID
+        model: "deepseek-ai/deepseek-chat", // ✅ this works
         messages: [
           {
             role: "system",
