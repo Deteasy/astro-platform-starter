@@ -3,12 +3,13 @@ const fetch = require("node-fetch");
 exports.handler = async function (event) {
   console.log("⚡ Request received:", event.body);
 
+  const allowedOrigin = "https://deteasy.squarespace.com";
+
   if (event.httpMethod === "OPTIONS") {
-    // Handle CORS preflight
     return {
       statusCode: 200,
       headers: {
-        "Access-Control-Allow-Origin": "*", // 👈 Optional: replace * with your Squarespace domain
+        "Access-Control-Allow-Origin": allowedOrigin,
         "Access-Control-Allow-Headers": "Content-Type",
         "Access-Control-Allow-Methods": "POST, OPTIONS"
       },
@@ -19,7 +20,9 @@ exports.handler = async function (event) {
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: {
+        "Access-Control-Allow-Origin": allowedOrigin
+      },
       body: JSON.stringify({ error: "Method Not Allowed" })
     };
   }
@@ -33,7 +36,9 @@ exports.handler = async function (event) {
     if (!userMessage) {
       return {
         statusCode: 400,
-        headers: { "Access-Control-Allow-Origin": "*" },
+        headers: {
+          "Access-Control-Allow-Origin": allowedOrigin
+        },
         body: JSON.stringify({ error: "Beskeden må ikke være tom." })
       };
     }
@@ -65,7 +70,9 @@ exports.handler = async function (event) {
       console.error("❌ OpenRouter API Error:", data.error);
       return {
         statusCode: 502,
-        headers: { "Access-Control-Allow-Origin": "*" },
+        headers: {
+          "Access-Control-Allow-Origin": allowedOrigin
+        },
         body: JSON.stringify({ error: data.error.message || "Fejl fra OpenRouter API." })
       };
     }
@@ -77,7 +84,7 @@ exports.handler = async function (event) {
       statusCode: 200,
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*"
+        "Access-Control-Allow-Origin": allowedOrigin
       },
       body: JSON.stringify({ reply })
     };
@@ -86,7 +93,9 @@ exports.handler = async function (event) {
     console.error("💥 Server error:", err.message);
     return {
       statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": "*" },
+      headers: {
+        "Access-Control-Allow-Origin": allowedOrigin
+      },
       body: JSON.stringify({ error: "Intern serverfejl: " + err.message })
     };
   }
