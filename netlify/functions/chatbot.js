@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 exports.handler = async function (event) {
   const allowedOrigin = "https://demo-deteasy.squarespace.com";
 
-  // Handle CORS preflight
+  // Handle preflight request
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -16,7 +16,7 @@ exports.handler = async function (event) {
     };
   }
 
-  // Only allow POST
+  // Reject anything except POST
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -37,7 +37,7 @@ exports.handler = async function (event) {
       };
     }
 
-    // Call OpenRouter API using your selected model
+    // Call OpenRouter
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -45,7 +45,7 @@ exports.handler = async function (event) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "deepseek-ai/deepseek-chat", // 👈 matches your account
+        model: "deepseek-ai/deepseek-chat",
         messages: [
           {
             role: "system",
@@ -57,38 +57,3 @@ exports.handler = async function (event) {
           }
         ]
       })
-    });
-
-    const data = await apiResponse.json();
-
-    // If OpenRouter returns an error
-    if (data.error) {
-      console.error("❌ OpenRouter API Error:", data.error);
-      return {
-        statusCode: 502,
-        headers: { "Access-Control-Allow-Origin": allowedOrigin },
-        body: JSON.stringify({ error: data.error.message || "Fejl fra OpenRouter API." })
-      };
-    }
-
-    // Extract chatbot reply safely
-    const reply = (data.choices && data.choices[0]?.message?.content) || "Intet svar modtaget.";
-
-    return {
-      statusCode: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": allowedOrigin
-      },
-      body: JSON.stringify({ reply })
-    };
-
-  } catch (err) {
-    console.error("💥 Server error:", err);
-    return {
-      statusCode: 500,
-      headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ error: "Intern serverfejl: " + err.message })
-    };
-  }
-};
