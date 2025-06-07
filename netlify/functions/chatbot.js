@@ -2,7 +2,7 @@ const fetch = require("node-fetch");
 
 exports.handler = async function (event) {
   try {
-    // Allow only POST requests
+    // ✅ Allow only POST requests
     if (event.httpMethod !== "POST") {
       return {
         statusCode: 405,
@@ -13,6 +13,7 @@ exports.handler = async function (event) {
     const body = JSON.parse(event.body);
     const userMessage = body.message;
 
+    // ✅ Basic validation
     if (!userMessage) {
       return {
         statusCode: 400,
@@ -20,11 +21,11 @@ exports.handler = async function (event) {
       };
     }
 
-    // Call OpenRouter securely using the environment variable
+    // ✅ Send message to OpenRouter (API key comes from Netlify env)
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`, // 🔐 NEVER hardcode here!
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -44,6 +45,7 @@ exports.handler = async function (event) {
 
     const data = await response.json();
 
+    // ✅ Handle OpenRouter errors
     if (data.error) {
       console.error("OpenRouter API Error:", data.error);
       return {
@@ -52,6 +54,7 @@ exports.handler = async function (event) {
       };
     }
 
+    // ✅ Respond to frontend
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
