@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 exports.handler = async function (event) {
   console.log("⚡ Request received:", event.body);
 
-  const allowedOrigin = "https://deteasy.squarespace.com";
+  const allowedOrigin = "https://demo-deteasy.squarespace.com";
 
   if (event.httpMethod === "OPTIONS") {
     return {
