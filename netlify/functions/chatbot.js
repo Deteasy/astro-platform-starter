@@ -3,7 +3,6 @@ const fetch = require("node-fetch");
 exports.handler = async function (event) {
   const allowedOrigin = "https://demo-deteasy.squarespace.com";
 
-  // Handle preflight request
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -16,7 +15,6 @@ exports.handler = async function (event) {
     };
   }
 
-  // Reject anything except POST
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -37,7 +35,6 @@ exports.handler = async function (event) {
       };
     }
 
-    // Call OpenRouter
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -57,3 +54,36 @@ exports.handler = async function (event) {
           }
         ]
       })
+    });
+
+    const data = await apiResponse.json();
+    console.log("🔍 OpenRouter raw response:", JSON.stringify(data));
+
+    if (data.error) {
+      return {
+        statusCode: 502,
+        headers: { "Access-Control-Allow-Origin": allowedOrigin },
+        body: JSON.stringify({ error: data.error.message || "Fejl fra OpenRouter API." })
+      };
+    }
+
+    const reply = data.choices?.[0]?.message?.content || "Intet svar modtaget.";
+
+    return {
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": allowedOrigin
+      },
+      body: JSON.stringify({ reply })
+    };
+
+  } catch (err) {
+    console.error("💥 Server error:", err.message);
+    return {
+      statusCode: 500,
+      headers: { "Access-Control-Allow-Origin": allowedOrigin },
+      body: JSON.stringify({ error: "Intern serverfejl: " + err.message })
+    };
+  }
+};
