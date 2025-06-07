@@ -110,6 +110,13 @@
       chat.innerHTML += `<p><strong>Du:</strong> ${question}</p>`;
       input.value = "";
 
+      // Vis "Daniel skriver..." straks for hurtig visuel feedback
+      const typingIndicator = document.createElement("p");
+      typingIndicator.id = "typing-indicator";
+      typingIndicator.innerHTML = `<strong>Daniel:</strong> <em>skriver...</em>`;
+      chat.appendChild(typingIndicator);
+      chat.scrollTop = chat.scrollHeight;
+
       try {
         const res = await fetch("/.netlify/functions/chatbot", {
           method: "POST",
@@ -118,9 +125,11 @@
         });
 
         const data = await res.json();
+        typingIndicator.remove();
         chat.innerHTML += `<p><strong>Daniel:</strong> ${data.reply || "Beklager, jeg kan ikke svare på det lige nu."}</p>`;
         chat.scrollTop = chat.scrollHeight;
       } catch (error) {
+        typingIndicator.remove();
         chat.innerHTML += `<p style="color:red"><strong>Daniel:</strong> Der opstod en fejl. Prøv igen senere.</p>`;
       }
     });
