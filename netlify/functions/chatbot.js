@@ -1,19 +1,18 @@
 const fetch = require("node-fetch");
 
 exports.handler = async function (event) {
-  try {
-    // ✅ Allow only POST requests
-    if (event.httpMethod !== "POST") {
-      return {
-        statusCode: 405,
-        body: JSON.stringify({ error: "Method Not Allowed" })
-      };
-    }
+  // Only accept POST requests
+  if (event.httpMethod !== "POST") {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: "Method Not Allowed" })
+    };
+  }
 
+  try {
     const body = JSON.parse(event.body);
     const userMessage = body.message;
 
-    // ✅ Basic validation
     if (!userMessage) {
       return {
         statusCode: 400,
@@ -21,11 +20,10 @@ exports.handler = async function (event) {
       };
     }
 
-    // ✅ Send message to OpenRouter (API key comes from Netlify env)
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`, // 🔐 NEVER hardcode here!
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`, // ✅ DO NOT hardcode
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
@@ -43,26 +41,26 @@ exports.handler = async function (event) {
       })
     });
 
-    const data = await response.json();
+    const data = await apiResponse.json();
 
-    // ✅ Handle OpenRouter errors
     if (data.error) {
-      console.error("OpenRouter API Error:", data.error);
+      console.error("OpenRouter error:", data.error);
       return {
         statusCode: 502,
         body: JSON.stringify({ error: data.error.message || "Fejl fra OpenRouter API." })
       };
     }
 
-    // ✅ Respond to frontend
+    const reply = data.choices?.[0]?.message?.content || "Bot kunne ikke give et svar.";
+
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ reply: data.choices?.[0]?.message?.content || "Intet svar." })
+      body: JSON.stringify({ reply })
     };
 
   } catch (err) {
-    console.error("Server Error:", err.message);
+    console.error("Server error:", err.message);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: "Intern serverfejl: " + err.message })
