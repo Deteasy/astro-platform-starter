@@ -1,8 +1,10 @@
+// ✅ chatbot.js (med forbedret prompt + option til websearch)
 const fetch = require("node-fetch");
 
 exports.handler = async function (event) {
   const allowedOrigin = "https://demo-deteasy.squarespace.com";
 
+  // Handle CORS preflight
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -42,11 +44,12 @@ exports.handler = async function (event) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo", // ✅ Working fallback model
+        model: "openai/gpt-3.5-turbo",
         messages: [
           {
             role: "system",
-            content: "Du er en venlig dansk chatbot der forklarer ting på en enkel og hjælpsom måde."
+            content:
+              "Du er en dansk chatbot ved navn Daniel, som giver korte, faktabaserede og letforståelige svar. Svar på spørgsmål klart og tydeligt. Sig til hvis du ikke har adgang til ny information."
           },
           {
             role: "user",
@@ -59,7 +62,7 @@ exports.handler = async function (event) {
     const data = await apiResponse.json();
 
     if (data.error) {
-      console.error("❌ OpenRouter API Error:", data.error);
+      console.error("OpenRouter API Error:", data.error);
       return {
         statusCode: 502,
         headers: { "Access-Control-Allow-Origin": allowedOrigin },
@@ -67,7 +70,7 @@ exports.handler = async function (event) {
       };
     }
 
-    const reply = data.choices?.[0]?.message?.content || "Intet svar modtaget.";
+    const reply = data.choices?.[0]?.message?.content || "Daniel har ikke noget svar på det.";
 
     return {
       statusCode: 200,
@@ -77,13 +80,12 @@ exports.handler = async function (event) {
       },
       body: JSON.stringify({ reply })
     };
-
   } catch (err) {
-    console.error("💥 Server error:", err.message);
+    console.error("Serverfejl:", err);
     return {
       statusCode: 500,
       headers: { "Access-Control-Allow-Origin": allowedOrigin },
-      body: JSON.stringify({ error: "Intern serverfejl: " + err.message })
+      body: JSON.stringify({ error: "Serverfejl: " + err.message })
     };
   }
 };
