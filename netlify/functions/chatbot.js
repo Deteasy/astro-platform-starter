@@ -3,7 +3,6 @@ const fetch = require("node-fetch");
 exports.handler = async function (event) {
   const allowedOrigin = "https://demo-deteasy.squarespace.com";
 
-  // Handle preflight CORS requests
   if (event.httpMethod === "OPTIONS") {
     return {
       statusCode: 200,
@@ -16,7 +15,6 @@ exports.handler = async function (event) {
     };
   }
 
-  // Only allow POST requests
   if (event.httpMethod !== "POST") {
     return {
       statusCode: 405,
@@ -44,7 +42,7 @@ exports.handler = async function (event) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3-8b-instruct",
+        model: "openai/gpt-3.5-turbo",
         messages: [
           {
             role: "system",
