@@ -42,11 +42,11 @@ exports.handler = async function (event) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "deepseek-r1-0528-qwen3-8b",
+        model: "deepseek-ai/deepseek-moe",
         messages: [
           {
             role: "system",
-            content: "Du er en venlig dansk chatbot der forklarer ting på en enkel og hjælpsom måde."
+            content: "Du er en venlig dansk chatbot, der forklarer teknologi og AI på en enkel og hjælpsom måde til nybegyndere."
           },
           {
             role: "user",
