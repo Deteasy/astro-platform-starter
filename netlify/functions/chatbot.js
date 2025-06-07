@@ -42,7 +42,7 @@ exports.handler = async function (event) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "deepseek/deepseek-r1-0528",
+        model: "deepseek/deepseek-r1-0528-qwen3-8b:free",
         messages: [
           {
             role: "system",
