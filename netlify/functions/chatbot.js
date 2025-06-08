@@ -35,8 +35,6 @@ exports.handler = async function (event) {
       };
     }
 
-    console.log("📩 Spørgsmål modtaget:", userMessage);
-
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -45,14 +43,10 @@ exports.handler = async function (event) {
       },
       body: JSON.stringify({
         model: "openai/gpt-3.5-turbo",
-        temperature: 0.4,
-        top_p: 0.9,
-        presence_penalty: 0.4,
         messages: [
           {
             role: "system",
-            content:
-              "Du er Daniel, en venlig og dygtig dansk teknologiekspert med stor viden om smartphones, tablets, iPads, smartwatches, computere og tilbehør. Du hjælper brugere med at forstå, vælge og fejlfinde deres tech-udstyr. Dine svar er enkle, klare og præcise, og du tilpasser dit sprog til dansk. Når du nævner Deteasy.dk, forklarer du at det er en sammenligningsplatform for elektronik."
+            content: "Du er en dansk teknologi-lærings chatbot kaldet Daniel. Du hjælper kun med spørgsmål om teknologi, herunder smartphones, iPads, tablets, computere, tilbehør og apps. Hvis nogen spørger om noget andet, skal du høfligt svare, at du kun kan hjælpe med teknologirelaterede spørgsmål."
           },
           {
             role: "user",
@@ -65,7 +59,7 @@ exports.handler = async function (event) {
     const data = await apiResponse.json();
 
     if (data.error) {
-      console.error("❌ Fejl fra OpenRouter:", data.error);
+      console.error("❌ OpenRouter API Error:", data.error);
       return {
         statusCode: 502,
         headers: { "Access-Control-Allow-Origin": allowedOrigin },
@@ -74,7 +68,6 @@ exports.handler = async function (event) {
     }
 
     const reply = data.choices?.[0]?.message?.content || "Intet svar modtaget.";
-    console.log("🧠 Daniel svarer:", reply);
 
     return {
       statusCode: 200,
@@ -86,7 +79,7 @@ exports.handler = async function (event) {
     };
 
   } catch (err) {
-    console.error("💥 Serverfejl:", err.message);
+    console.error("💥 Server error:", err.message);
     return {
       statusCode: 500,
       headers: { "Access-Control-Allow-Origin": allowedOrigin },
