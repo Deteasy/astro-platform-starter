@@ -35,7 +35,7 @@ exports.handler = async function (event) {
       };
     }
 
-    console.log("📩 Indgående besked:", userMessage);
+    console.log("📩 Spørgsmål modtaget:", userMessage);
 
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -46,13 +46,13 @@ exports.handler = async function (event) {
       body: JSON.stringify({
         model: "openai/gpt-3.5-turbo",
         temperature: 0.4,
-        top_p: 0.95,
-        presence_penalty: 0.5,
+        top_p: 0.9,
+        presence_penalty: 0.4,
         messages: [
           {
             role: "system",
             content:
-              "Du er Daniel, en intelligent dansk chatbot. Analyser spørgsmålet nøje og svar så præcist og brugbart som muligt. Vær altid venlig, hjælpsom og korrekt, og undgå at gentage dig selv. Hvis brugeren spørger om Deteasy.dk, så giv specifik og aktuel information."
+              "Du er Daniel, en venlig og dygtig dansk teknologiekspert med stor viden om smartphones, tablets, iPads, smartwatches, computere og tilbehør. Du hjælper brugere med at forstå, vælge og fejlfinde deres tech-udstyr. Dine svar er enkle, klare og præcise, og du tilpasser dit sprog til dansk. Når du nævner Deteasy.dk, forklarer du at det er en sammenligningsplatform for elektronik."
           },
           {
             role: "user",
@@ -65,7 +65,7 @@ exports.handler = async function (event) {
     const data = await apiResponse.json();
 
     if (data.error) {
-      console.error("❌ OpenRouter API Error:", data.error);
+      console.error("❌ Fejl fra OpenRouter:", data.error);
       return {
         statusCode: 502,
         headers: { "Access-Control-Allow-Origin": allowedOrigin },
