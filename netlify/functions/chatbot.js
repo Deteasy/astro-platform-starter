@@ -35,6 +35,8 @@ exports.handler = async function (event) {
       };
     }
 
+    console.log("📩 Indgående besked:", userMessage);
+
     const apiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -42,11 +44,15 @@ exports.handler = async function (event) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openai/gpt-3.5-turbo", // ✅ Working fallback model
+        model: "openai/gpt-3.5-turbo",
+        temperature: 0.4,
+        top_p: 0.95,
+        presence_penalty: 0.5,
         messages: [
           {
             role: "system",
-            content: "Du er en venlig dansk chatbot der forklarer ting på en enkel og hjælpsom måde."
+            content:
+              "Du er Daniel, en intelligent dansk chatbot. Analyser spørgsmålet nøje og svar så præcist og brugbart som muligt. Vær altid venlig, hjælpsom og korrekt, og undgå at gentage dig selv. Hvis brugeren spørger om Deteasy.dk, så giv specifik og aktuel information."
           },
           {
             role: "user",
@@ -68,6 +74,7 @@ exports.handler = async function (event) {
     }
 
     const reply = data.choices?.[0]?.message?.content || "Intet svar modtaget.";
+    console.log("🧠 Daniel svarer:", reply);
 
     return {
       statusCode: 200,
@@ -79,7 +86,7 @@ exports.handler = async function (event) {
     };
 
   } catch (err) {
-    console.error("💥 Server error:", err.message);
+    console.error("💥 Serverfejl:", err.message);
     return {
       statusCode: 500,
       headers: { "Access-Control-Allow-Origin": allowedOrigin },
