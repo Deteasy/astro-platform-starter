@@ -108,7 +108,7 @@
       if (!question) return;
 
       const sanitize = (str) =>
-        str.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;");
+        str.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
       chat.innerHTML += `<p><strong>Du:</strong> ${sanitize(question)}</p>`;
       input.value = "";
