@@ -2,69 +2,103 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Daniel Chatbot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat med Daniel</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
+      padding: 0;
       font-family: 'Helvetica Neue', sans-serif;
-      background-color: #f2f2f2;
+      background: #f3f4f6;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
     }
-    .chat-container {
+
+    .chat-wrapper {
       width: 100%;
-      max-width: 700px;
+      max-width: 600px;
       height: 90vh;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
-    .chat-messages {
+
+    .chat-box {
       flex: 1;
       padding: 20px;
       overflow-y: auto;
     }
-    .chat-messages p {
-      margin-bottom: 10px;
-      line-height: 1.6;
+
+    .chat-box p {
+      font-size: 16px;
+      margin: 0 0 12px;
+      line-height: 1.5;
     }
+
+    .chat-box strong {
+      display: inline-block;
+      margin-bottom: 4px;
+      font-size: 16px;
+    }
+
     .chat-form {
       display: flex;
       padding: 16px;
-      background-color: #fafafa;
-      border-top: 1px solid #e0e0e0;
+      border-top: 1px solid #eee;
+      background: #f9f9f9;
     }
+
     .chat-form input {
       flex: 1;
-      padding: 14px;
-      font-size: 16px;
+      padding: 14px 16px;
       border: 1px solid #ccc;
       border-radius: 10px;
-      outline: none;
+      font-size: 15px;
     }
+
     .chat-form button {
-      background: #005eff;
+      padding: 14px 20px;
+      margin-left: 10px;
+      background-color: #2563eb;
       color: white;
       border: none;
-      padding: 0 24px;
-      margin-left: 12px;
-      font-size: 16px;
       border-radius: 10px;
+      font-size: 15px;
       cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .chat-form button:hover {
+      background-color: #1e40af;
+    }
+
+    em {
+      font-style: italic;
+      color: #555;
     }
   </style>
 </head>
 <body>
-  <div class="chat-container">
-    <div id="chat-messages" class="chat-messages"></div>
-    <form id="chat-form" class="chat-form">
-      <input id="user-input" placeholder="Hvad kan jeg hjælpe med?" required />
+  <div class="chat-wrapper">
+    <div class="chat-box" id="chat-box"></div>
+
+    <form class="chat-form" id="chat-form">
+      <input
+        type="text"
+        id="user-input"
+        placeholder="Hvad kan jeg hjælpe med?"
+        autocomplete="off"
+        required
+      />
       <button type="submit">Send</button>
     </form>
   </div>
@@ -72,20 +106,21 @@
   <script>
     const form = document.getElementById("chat-form");
     const input = document.getElementById("user-input");
-    const chat = document.getElementById("chat-messages");
+    const chat = document.getElementById("chat-box");
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const message = input.value.trim();
-      if (!message) return;
+      const question = input.value.trim();
+      if (!question) return;
 
       const sanitize = (str) =>
-        str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        str.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-      chat.innerHTML += `<p><strong>Du:</strong> ${sanitize(message)}</p>`;
+      chat.innerHTML += `<p><strong>Du:</strong> ${sanitize(question)}</p>`;
       input.value = "";
 
       const loading = document.createElement("p");
+      loading.id = "loading";
       loading.innerHTML = `<strong>Daniel:</strong> <em>skriver...</em>`;
       chat.appendChild(loading);
       chat.scrollTop = chat.scrollHeight;
@@ -94,23 +129,28 @@
         const res = await fetch("/.netlify/functions/chatbot", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message })
+          body: JSON.stringify({ message: question })
         });
 
-        const data = await res.json();
         loading.remove();
+
+        if (!res.ok) {
+          throw new Error("Fejl ved forespørgsel");
+        }
+
+        const data = await res.json();
 
         if (data.reply) {
           chat.innerHTML += `<p><strong>Daniel:</strong> ${sanitize(data.reply)}</p>`;
         } else {
           chat.innerHTML += `<p style="color:red"><strong>Daniel:</strong> Der opstod en fejl. Prøv igen senere.</p>`;
         }
-
-        chat.scrollTop = chat.scrollHeight;
-      } catch (err) {
+      } catch (error) {
         loading.remove();
         chat.innerHTML += `<p style="color:red"><strong>Daniel:</strong> Der opstod en fejl. Prøv igen senere.</p>`;
       }
+
+      chat.scrollTop = chat.scrollHeight;
     });
   </script>
 </body>
