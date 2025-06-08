@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Daniel Chatbot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Helvetica Neue', sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #f7f7f8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .chat-container {
+        width: 100%;
+        max-width: 700px;
+        height: 90vh;
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      .chat-messages p {
+        margin: 0 0 12px;
+        line-height: 1.5;
+      }
+
+      .chat-messages strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .chat-form {
+        display: flex;
+        padding: 16px;
+        border-top: 1px solid #eee;
+        background: #fafafa;
+      }
+
+      .chat-form input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        font-size: 16px;
+      }
+
+      .chat-form button {
+        margin-left: 10px;
+        padding: 12px 20px;
+        background: #005eff;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="chat-container">
+      <div class="chat-messages" id="chat-messages"></div>
+      <form class="chat-form" id="chat-form">
+        <input type="text" id="user-input" placeholder="Hvad kan jeg hjælpe med?" required />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+
+    <script>
+      const form = document.getElementById("chat-form");
+      const input = document.getElementById("user-input");
+      const chat = document.getElementById("chat-messages");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const question = input.value.trim();
+        if (!question) return;
+
+        const sanitize = (str) =>
+          str.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\"/g, "&quot;");
+
+        chat.innerHTML += `<p><strong>Du:</strong> ${sanitize(question)}</p>`;
+        input.value = "";
+
+        const typingIndicator = document.createElement("p");
+        typingIndicator.id = "typing-indicator";
+        typingIndicator.innerHTML = `<strong>Daniel:</strong> <em>skriver...</em>`;
+        chat.appendChild(typingIndicator);
+        chat.scrollTop = chat.scrollHeight;
+
+        try {
+          const res = await fetch("/.netlify/functions/chatbot", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: question })
+          });
+
+          const data = await res.json();
+          typingIndicator.remove();
+
+          if (data.reply) {
+            chat.innerHTML += `<p><strong>Daniel:</strong> ${sanitize(data.reply)}</p>`;
+          } else {
+            chat.innerHTML += `<p style="color:red"><strong>Daniel:</strong> Der opstod en fejl. Prøv igen senere.</p>`;
+          }
+
+          chat.scrollTop = chat.scrollHeight;
+        } catch (error) {
+          typingIndicator.remove();
+          chat.innerHTML += `<p style="color:red"><strong>Daniel:</strong> Der opstod en fejl. Prøv igen senere.</p>`;
+        }
+      });
+    </script>
+  </body>
+</html>
